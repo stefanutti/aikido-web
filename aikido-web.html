@@ -1,0 +1,2509 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>合気道 (Aikido)</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+            }
+
+            h1 {
+                text-align: left;
+                display: flex;
+                align-items: left;
+                justify-content: left;
+            }
+
+            h1 img {
+                margin-right: 15px;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 30px;
+            }
+
+            th,
+            td {
+                border: none;
+                padding: 8px;
+                text-align: left;
+                font-size: x-large;
+            }
+
+            th {
+                background-color: #449df6;
+            }
+
+            label, input[type="checkbox"], input[type="text"] {
+                font-size: x-large;
+            }
+ 
+            td figure {
+                display: inline-block;
+                vertical-align: top;
+            }
+
+            td figcaption {
+                font-size: 14px;
+                text-align: center;
+                margin-top: 5px;
+                width: 100%;
+            }
+
+            iframe.youtube-video {
+                opacity: 0;
+                width: 640px; /* Doppio di 320px */
+                height: 360px; /* Doppio di 180px */
+ 
+            }
+
+            button {
+                font-size: x-large;
+                padding: 5px 10px; /* Aumenta il padding per pulsanti più grandi */
+                height: auto; /* Rimuove eventuali limitazioni di altezza */
+                width: auto; /* Rimuove eventuali limitazioni di larghezza */
+            }
+
+            select {
+                font-size: x-large;
+                padding: 5px; /* Aumenta il padding per pulsanti più grandi */
+            }
+
+            td:last-child {
+                overflow-x: auto;
+                white-space: nowrap;
+
+            }
+
+            /* Header */
+            thead tr:first-child th {
+                position: sticky;
+                top: 0em;
+                z-index: 100;
+            }
+        </style>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const lazyIframes = document.querySelectorAll("iframe.youtube-video");
+
+                if ("IntersectionObserver" in window) {
+                    const observer = new IntersectionObserver((entries, observer) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                const iframe = entry.target;
+                                iframe.src = iframe.dataset.src; // Imposta l'attributo 'src' quando visibile
+                                iframe.style.opacity = 1; // Rende visibile l'iframe
+                                observer.unobserve(iframe); // Interrompi l'osservazione per questo elemento
+                            }
+                        });
+                    });
+
+                    lazyIframes.forEach(iframe => {
+                        iframe.dataset.src = iframe.getAttribute("data-src"); // Usa 'data-src' senza rimuovere 'src'
+                        observer.observe(iframe);
+                    });
+                }
+
+                // Ensure visible-rows-count is updated on page load
+                filterTable();
+            });
+        </script>
+
+        <script>
+            let currentRowId = null; // Store the ID of the row with the random technique
+
+            function showRandomTechnique() {
+                const table = document.getElementById("techniques");
+                if (!table) {
+                    console.error("Table with ID 'techniques' not found.");
+                    return;
+                }
+
+                // Recupera solo le righe visibili (che rispettano il filtro)
+                const visibleRows = Array.from(table.getElementsByTagName("tr")).filter(row => row.style.display !== "none" && row.getElementsByTagName("td").length > 0);
+
+                if (visibleRows.length === 0) {
+                    console.warn("No visible rows found that match the filter.");
+                    return;
+                }
+
+                const randomIndex = Math.floor(Math.random() * visibleRows.length);
+                const selectedRow = visibleRows[randomIndex];
+                const cells = selectedRow.getElementsByTagName("td");
+
+                if (cells.length < 3) {
+                    console.error("Selected row does not have the expected three cells.");
+                    return;
+                }
+                
+                // Rimuove eventuale ID dalla riga precedentemente selezionata
+                if (currentRowId) {
+                    document.getElementById(currentRowId).removeAttribute("id");
+                }
+
+                // Imposta un ID unico per la riga selezionata
+                currentRowId = `row-${randomIndex}`;
+                selectedRow.id = currentRowId;
+
+                // Estrai il testo delle colonne e concatenalo, rimuovendo parentesi e accapo dalla prima colonna
+                const firstColumn = cells[0].textContent.replace(/\(.*?\)|\n/g, "").trim();
+                const secondColumn = cells[1].textContent.trim();
+                const thirdColumn = cells[2].textContent.trim();
+                
+                const randomTechnique = `${firstColumn} ${secondColumn} ${thirdColumn}`;
+                document.getElementById("randomTechniqueLabel").innerText = randomTechnique;
+                document.getElementById("gotoButton").style.display = "inline";
+                document.getElementById("searchYouTubeButton").style.display = "inline";
+            }
+
+            function gotoTechnique() {
+                if (currentRowId) {
+                    const element = document.getElementById(currentRowId);
+                    const header = document.querySelector("thead"); // Seleziona l'header della tabella
+                    const offset = header ? header.offsetHeight : 0; // Ottiene l'altezza dell'header, se presente
+                    
+                    // Calcola la posizione dell'elemento tenendo conto dell'header
+                    const elementPosition = element.getBoundingClientRect().top + window.pageYOffset - offset;
+
+                    window.scrollTo({
+                        top: elementPosition,
+                        behavior: "instant" // Usa "instant" per un caricamento immediato
+                    });
+                }
+            }
+
+            function searchYouTube() {
+                const technique = document.getElementById("randomTechniqueLabel").innerText;
+                if (technique) {
+                    const query = encodeURIComponent(technique);
+                    const url = `https://www.youtube.com/results?search_query=${query}`;
+                    window.open(url, "_blank");
+                } else {
+                    alert("Please select a technique first.");
+                }
+            }
+        </script>
+
+        <script data-src="https://www.youtube.com/iframe_api"></script>
+
+        <script>
+            // Funzione per raccogliere i filtri spuntati
+            function collectCheckedFilters(filterCheckboxes) {
+                var filters = [];
+                for (var i = 0; i < filterCheckboxes.length; i++) {
+                    if (filterCheckboxes[i].checked) {
+                        filters.push(filterCheckboxes[i].value);
+                    }
+                }
+                return filters;
+            }
+
+            function filterTable() {
+                var table = document.querySelector("table");
+                var rows = table.getElementsByTagName("tr");
+                var headerRows = table.querySelectorAll("thead tr").length;
+
+                // Recupera i valori selezionati nei filtri per le categorie
+                var filterCheckboxCategory = document.getElementsByClassName("filter-checkbox-category");
+                var filtersCategory = collectCheckedFilters(filterCheckboxCategory);
+
+                // Recupera il valore selezionato nella dropdown per i gradi
+                var selectedGrade = document.getElementById("filter-grade").value;
+
+                // Recupera il valore del filtro di testo libero
+                var filterFreeText = document.getElementById("filter-free-text").value.toLowerCase();
+
+                // Count of visible rows
+                let visibleCount = 0;
+
+                for (var i = headerRows; i < rows.length; i++) {
+                    var categoryCell = rows[i].getElementsByTagName("td")[0]; // Prende la colonna delle categorie
+                    var categoryText = categoryCell ? categoryCell.textContent.trim() : ""; // Rimuove spazi indesiderati
+                    var gradeCell = rows[i].getElementsByTagName("td")[0];
+                    var rowText = rows[i].innerText.toLowerCase();
+
+                    // Controlla se la cella della categoria include il valore selezionato (se presente)
+                    var categoryMatch = filtersCategory.some(filterCategory => categoryText.includes(filterCategory));
+
+                    // Controlla se la cella del grado include il valore selezionato (se presente)
+                    var gradeMatch = selectedGrade === "" || (gradeCell && gradeCell.textContent.includes(selectedGrade));
+
+                    // Controlla se il testo della riga include il testo del filtro libero
+                    var textMatch = rowText.includes(filterFreeText);
+
+                    // Mostra la riga solo se entrambe le condizioni sono soddisfatte
+                    if (categoryMatch && gradeMatch && textMatch) {
+                        rows[i].style.display = "";
+                        visibleCount++;
+                    } else {
+                        rows[i].style.display = "none";
+                    }
+                }
+
+                // Update the visible rows count
+                document.getElementById("visible-rows-count").textContent = `#: ${visibleCount}`;
+            }
+        </script>
+    </head>
+
+    <body>
+        <!-- Title with Aikido Symbol -->
+        <h1>合気道 Aikido Techniques</h1>
+        <h2>ProgettoAiki</h2>
+        <h4>Download the pdf <a href="https://progettoaiki.org/files/ProgrammaEsamiDanAikidoProgettoAiki.pdf" target="_blank">here</a></h4>
+        <h4>Playlists</h4>
+        <h4>
+            <ul>
+                <li>Michel Erb: <a href="https://www.youtube.com/@aikidocom/playlists" target="_blank">here</a></li>
+                <li>Peter Van Marcke: <a href="https://www.youtube.com/@petervmarcke/playlists" target="_blank">here</a></li>
+                <li>Shirakawa Ryuji: <a href="https://www.youtube.com/@Shinburenseijyuku/playlists" target="_blank">here</a></li>
+                <li>Stefan Stenudd: <a href="https://www.youtube.com/@StefanStenudd" target="_blank">here</a></li>
+                <li>Bruno Gonzalez: <a href="https://www.youtube.com/@BrunoGonzalezAikido/playlists" target="_blank">here</a></li>
+                <li>Anis Aikido (Tissier): <a href="https://www.youtube.com/@anisaikido6528/playlists" target="_blank">here</a></li>
+                <li>Aikido Lleida (Tissier, ...): <a href="https://www.youtube.com/@clubaikidolleida8610/playlists" target="_blank">here</a></li>
+                <li>How to do Aikido (NY Aikikai): <a href="https://www.youtube.com/playlist?list=PL970B7BDB368DB950" target="_blank">here</a></li>
+                <li>Stefan Stenudd (Tanto): <a href="https://www.youtube.com/playlist?list=PLB0410E922787DE51" target="_blank">here</a></li>
+            </ul>
+        </h4>
+        <!-- Techniques Table -->
+    
+        <!-- Tab Content -->
+        <div class="tabcontent">
+            <h3>Techniques</h3>
+
+            <table id="techniques">
+                <thead>
+                    <tr>
+                        <th colspan="4">
+                            <!-- Div per raggruppare tutti i filtri e la ricerca in un’unica riga -->
+                            <div style="display: flex; flex-direction: column; gap: 20px;">
+                                <!-- Filtri per le categorie -->
+                                <div>
+                                    <label><input type="checkbox" class="filter-checkbox-category" value="Suwari Waza" onclick="filterTable()" checked> Suwari Waza</label>
+                                    <label><input type="checkbox" class="filter-checkbox-category" value="Hanmi Handachi Waza" onclick="filterTable()" checked> Hanmi Handachi Waza</label>
+                                    <label><input type="checkbox" class="filter-checkbox-category" value="Tachi Waza" onclick="filterTable()" checked> Tachi Waza</label>
+                                    <label><input type="checkbox" class="filter-checkbox-category" value="Ushiro Waza" onclick="filterTable()" checked> Ushiro Waza</label>
+                                    <label><input type="checkbox" class="filter-checkbox-category" value="Futari Dori" onclick="filterTable()" checked> Futari Dori</label>
+                                    <label><input type="checkbox" class="filter-checkbox-category" value="Randori" onclick="filterTable()" checked> Randori</label>
+                                    <label><input type="checkbox" class="filter-checkbox-category" value="Tanto Dori" onclick="filterTable()" checked> Tanto Dori</label>
+                                </div>
+
+                                <div>
+                                    <label for="filter-grade">Grade selection:</label>
+                                    <select id="filter-grade" onchange="filterTable()">
+                                        <option value="">Tutti</option>
+                                        <option value="5k">Kyu 5</option>
+                                        <option value="4k">Kyu 4</option>
+                                        <option value="3k">Kyu 3</option>
+                                        <option value="2K">Kyu 2</option>
+                                        <option value="1k">Kyu 1</option>
+                                        <option value="1d">Dan 1</option>
+                                        <option value="2d">Dan 2</option>
+                                        <option value="3d">Dan 3</option>
+                                    </select>
+                                </div>
+
+                                <!-- Filtro di testo libero -->
+                                <div>
+                                    <label for="filter-free-text">Free text filter:</label>
+                                    <input type="text" id="filter-free-text" placeholder="Free text filter" onkeyup="filterTable()"/>
+                                </div>
+
+                                <!-- Filtro per tecnica casuale -->
+                                <div>
+                                    <label id="visible-rows-count">#: 0</label>
+                                    <button onclick="showRandomTechnique()">Random technique</button>
+                                    <label id="randomTechniqueLabel"></label>
+                                    <button id="gotoButton" style="display: none;" onclick="gotoTechnique()">Goto</button>
+                                    <button id="searchYouTubeButton" style="display: none;" onclick="searchYouTube()">Search on YouTube</button>
+                                </div>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Suwari Waza<br>(3k)<br>(1d, 2d, 3d)</td>
+                        <td>Kata Dori</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/ppimQdRfu9Y?mute=1"></iframe>
+                                <figcaption>Dojo Satori (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(1d, 2d, 3d)</td>
+                        <td>Kata Dori</td>
+                        <td>Nikyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/EfvVDLojkYQ?mute=1"></iframe>
+                                <figcaption>Moriteru Ueshiba (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(2d, 3d)</td>
+                        <td>Kata Dori</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/8vAi8Md_u4s?mute=1"></iframe>
+                                
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(2d, 3d)</td>
+                        <td>Kata Dori</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/M-rwcq3iI-0?mute=1"></iframe>
+                                <figcaption>Michel Erb (n/a) - Kata Dori non trovato</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(2d, 3d)</td>
+                        <td>Ryote Dori</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/lKx_o9wo6Gk?mute=1"></iframe>
+                                <figcaption>Gergely Juhasz (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/7YB3155HG2E?mute=1"></iframe>
+                                <figcaption>Gergely Juhasz (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(2d, 3d)</td>
+                        <td>Ryote Dori</td>
+                        <td>Nikyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/7UO9_wXLx_s?mute=1"></iframe>
+                                <figcaption>Gergely Juhasz (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/JTB2WgwBhXY?mute=1"></iframe>
+                                <figcaption>Gergely Juhasz (o)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(2d, 3d)</td>
+                        <td>Ryote Dori</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/xW4XKNBsU14?mute=1"></iframe>
+                                <figcaption>Christophe Aloisio (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(3d)</td>
+                        <td>Ryote Dori</td>
+                        <td>Yonkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/mdSJchRXx8Y?mute=1"></iframe>
+                                <figcaption>Dojo Aïkido Ryu Talant (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(3d)</td>
+                        <td>Ryo Kata Dori</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/YuA3OqRRvxU?mute=1"></iframe>
+                                <figcaption>Dojo AikiSpain (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(3d)</td>
+                        <td>Ryo Kata Dori</td>
+                        <td>Nikyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/ScRgjzC6-ho?mute=1"></iframe>
+                                <figcaption>Paul Muller (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(3d)</td>
+                        <td>Ryo Kata Dori</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/NkTNkrE6Pwc?mute=1"></iframe>
+                                <figcaption>Dojo Aikido klub Centar (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(3d)</td>
+                        <td>Ryo Kata Dori</td>
+                        <td>Yonkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/WCnK0QXzWlo?mute=1"></iframe>
+                                <figcaption>Dojo Aikido klub Centar (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(1d, 2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/sQqUeFzZaNg?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(3k)<br>(1d, 2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Nikyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/ETVi6khmA_g?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o+u)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/uMYY8EYC4xE?mute=1"></iframe>
+                                <figcaption>Moriteru Ueshiba (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(1d, 2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/cNopeDu0_eo?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/8VcayghSyPY?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(1d, 2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Yonkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/9hKavjjYZx8?mute=1"></iframe>
+                                <figcaption>Moriteru Ueshiba (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(1d, 2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/cqrFTwe70Gw?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(1d, 2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Iriminage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/HOoSY2cvQSY?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(1d, 2d, 3d)</td>
+                        <td>Yokomen Uchi</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/qtMIMFFdAa8?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(1d, 2d, 3d)</td>
+                        <td>Yokomen Uchi</td>
+                        <td>Nikyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/2QhwgJewf3w?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(1d, 2d, 3d)</td>
+                        <td>Yokomen Uchi</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/WVI3ZByGh8o?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(1d, 2d, 3d)</td>
+                        <td>Yokomen Uchi</td>
+                        <td>Yonkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/lGGI7hJjg_o?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/hXrok6lxkM8?mute=1"></iframe>
+                                <figcaption>Michel Erb (o)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(1d, 2d, 3d)</td>
+                        <td>Yokomen Uchi</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/dcLYSj8E1q0?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Suwari Waza<br>(1d, 2d, 3d)</td>
+                        <td>Yokomen Uchi</td>
+                        <td>Iriminage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/lyyMewZhorg?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hanmi Handachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/fIDhArw7IbA?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hanmi Handachi Waza<br>(2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Nikyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/YnQHWC5DbUw?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hanmi Handachi Waza<br>(2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/cpA4hb27XTk?mute=1"></iframe>
+                                <figcaption>Wojciech Głogowski (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hanmi Handachi Waza<br>(2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Yonkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/9FqdR44j0R4?mute=1"></iframe>
+                                <figcaption>Dojo Aïkido Ryu Talant (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hanmi Handachi Waza<br>(2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/gCO1popi3kU?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hanmi Handachi Waza<br>(2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Iriminage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/503gVAdBP_A?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hanmi Handachi Waza<br>(3k)<br>(2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Shihonage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/aPrGOf0qDac?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hanmi Handachi Waza<br>(3k)<br>(2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Kaiten Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/TplxaztrJSw?mute=1"></iframe>
+                                <figcaption>Lars Stjernstedt (uci)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/1sXRkvFDwm8?mute=1"></iframe>
+                                <figcaption>Lars Stjernstedt (soto)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hanmi Handachi Waza<br>(2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Sumi Otoshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Cq1Y1wC433Y?mute=1"></iframe>
+                                <figcaption>Dojo Aïkido Ryu Talant (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hanmi Handachi Waza<br>(2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Kokyu Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/rpex8NlCwmk?mute=1"></iframe>
+                                <figcaption>François Pichereau (1st, 2nd, 3rd form)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hanmi Handachi Waza<br>(1k)<br>(1d, 2d, 3d)</td>
+                        <td>Ryote Dori</td>
+                        <td>Shihonage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/JdAFs8xrRHU?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hanmi Handachi Waza<br>(3d)</td>
+                        <td>Ushiro Kata Dori</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/BtYUkj287d4?mute=1"></iframe>
+                                <figcaption>Dojo Aïkido Ryu Talant (o)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hanmi Handachi Waza<br>(3d)</td>
+                        <td>Ushiro Kata Dori</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/HdsX2oizp14?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a) found only Ryo</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hanmi Handachi Waza<br>(3d)</td>
+                        <td>Ushiro Kata Dori</td>
+                        <td>Kokyu Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/pLs0ndYRDvY?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a) Ryo!</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hanmi Handachi Waza<br>(1k)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/hTZbsGDiVJ4?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hanmi Handachi Waza<br>(1k)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Iriminage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/_tfD4mmaqJ8?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ai Hanmi Katate Dori</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/xHfu4kWAceM?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/3-117og5KN0?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ai Hanmi Katate Dori</td>
+                        <td>Nikyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/hmhUozNZoYo?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/aOqSeySr5cw?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ai Hanmi Katate Dori</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/5rbJFu5_U9k?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/JNucTtFGZGw?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3d)</td>
+                        <td>Ai Hanmi Katate Dori</td>
+                        <td>Yonkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/ge1SYHXPjOY?mute=1"></iframe>
+                                <figcaption>Michel Erb (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/QBTX52BEnfE?mute=1"></iframe>
+                                <figcaption>Michel Erb (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ai Hanmi Katate Dori</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/hnjD0s5devg?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ai Hanmi Katate Dori</td>
+                        <td>Iriminage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/z74nXcAJEv0?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ai Hanmi Katate Dori</td>
+                        <td>Shihonage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/11esPKzz8I4?mute=1"></iframe>
+                                <figcaption>Michel Erb (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/gc19Vqi3mkU?mute=1"></iframe>
+                                <figcaption>Michel Erb (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ai Hanmi Katate Dori</td>
+                        <td>Udekimenage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Eao8fdYiA48?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ai Hanmi Katate Dori</td>
+                        <td>Koshinage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/IkG0ue8bXTo?mute=1"></iframe>
+                                <figcaption>François Pichereau (1st, 2nd form)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(2d, 3d)</td>
+                        <td>Ai Hanmi Katate Dori</td>
+                        <td>Sumi Otoshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/sKdx2D9G5m0?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/twFAdMxyto8?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/xkHG7Me1DN4?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Nikyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/ESeQSfg1o3Q?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/9BjDZOYZYVM?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/ZqFdQ4gDH5k?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Yonkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/PdLR-g5_avw?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/yc7LJlZrfTQ?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Iriminage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/mzpFTyaUEoI?mute=1"></iframe>
+                                <figcaption>Christian Tissier (1st, 2nd form)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/mFBpiRuQOrQ?mute=1"></iframe>
+                                <figcaption>Christian Tissier (3rd, 4th form)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Shihonage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/j8HHvYYaTBQ?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Udekimenage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/BymVlxGd6BM?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Tenchinage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/tp2Peirz_5Y?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/AaWe-rJxv7o?mute=1"></iframe>
+                                <figcaption>Dojo Aikido klub Centar (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3k)<br>(2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Kaiten Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/o4wwYZ8-BIU?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o) Uchi!</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/9UTulCYqKp0?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u) Uchi!</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Sumi Otoshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/wiBqYzuJJa4?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Ude Garami</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/BonMjaHqay4?mute=1"></iframe>
+                                <figcaption>François Pichereau (1st, 2nd form)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Koshinage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/7ZjGnP3dyDs?mute=1"></iframe>
+                                <figcaption>Erik Louw (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Katate Dori</td>
+                        <td>Kokyu Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/rPiRb-2qUDQ?mute=1"></iframe>
+                                <figcaption>François Pichereau (1st, 2nd, 3rd, 4th form)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3k)<br>(1d, 2d, 3d)</td>
+                        <td>Ryote Dori</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/n_FsCsNiExc?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/VmxWUo8N534?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ryote Dori</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/0P7hxhSgY3o?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ryote Dori</td>
+                        <td>Iriminage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/i3YOvWYpc1Y?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ryote Dori</td>
+                        <td>Shihonage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/WQc0-n9VM8Q?mute=1"></iframe>
+                                <figcaption>Dojo Aïkido Ryu Talant (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ryote Dori</td>
+                        <td>Udekimenage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/fLkEsQ1fSHY?mute=1"></iframe>
+                                <figcaption>Paul Muller (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ryote Dori</td>
+                        <td>Tenchinage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/dbNpOCvwBXg?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/592OryKq5rE?mute=1"></iframe>
+                                <figcaption>Dojo Aikido klub Centar (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ryote Dori</td>
+                        <td>Koshinage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/CJf5PdOrwjE?mute=1"></iframe>
+                                <figcaption>François Pichereau (1st, 2nd form)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ryote Dori</td>
+                        <td>Kokyu Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/cf0uD0Ys3BU?mute=1"></iframe>
+                                <figcaption>François Pichereau (1st, 2nd, 3rd form)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Kata Dori</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/cxRYw51XKDE?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/scM_JNBWork?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Kata Dori</td>
+                        <td>Nikyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/RU8khmsbObg?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/cFUOxaIi3Po?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3d)</td>
+                        <td>Kata Dori</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/XlMJQMbfKo8?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3d)</td>
+                        <td>Kata Dori</td>
+                        <td>Yonkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/QDwNQL3jQkE?mute=1"></iframe>
+                                <figcaption>Alin (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(2d, 3d)</td>
+                        <td>Kata Dori Menuchi</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/umNi5fKeaLA?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Lzl2q5kgy-8?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(2d, 3d)</td>
+                        <td>Kata Dori Menuchi</td>
+                        <td>Shihonage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/GngZmO8DhLg?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o) u?</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(2d, 3d)</td>
+                        <td>Kata Dori Menuchi</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/wzYiTwdsUMY?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(2d, 3d)</td>
+                        <td>Kata Dori Menuchi</td>
+                        <td>Iriminage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/1OwjDQMrj8k?mute=1"></iframe>
+                                <figcaption>Shirakawa (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(2d, 3d)</td>
+                        <td>Kata Dori Menuchi</td>
+                        <td>Kokyu Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/V1ZTDYl1fgI?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/6SW9vwDEAps?mute=1"></iframe>
+                                <figcaption>Leonardo Sodré (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3k)<br>(2d, 3d)</td>
+                        <td>Katate Ryote Dori</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/ZsLsRI3KukQ?mute=1"></iframe>
+                                <figcaption>Paul Muller (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3k)<br>(2d, 3d)</td>
+                        <td>Katate Ryote Dori</td>
+                        <td>Nikyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Ork8roqH68A?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/ofEGG2PUi_w?mute=1"></iframe>
+                                <figcaption>Dojo Aikido Ryu Talant (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3k)<br>(3d)</td>
+                        <td>Katate Ryote Dori</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/hQRDGc3Oc9A?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3d)</td>
+                        <td>Katate Ryote Dori</td>
+                        <td>Iriminage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/pR8oaFCPXXI?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1k)<br>(3d)</td>
+                        <td>Katate Ryote Dori</td>
+                        <td>Juji Garami</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/zG51CPcfiRQ?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3k)<br>(2d, 3d)</td>
+                        <td>Katate Ryote Dori</td>
+                        <td>Udekimenage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Ml52h_GKrqw?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Katate Ryote Dori</td>
+                        <td>Naname Kokyu Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/5tdqXPWGUOc?mute=1"></iframe>
+                                <figcaption>Paul Muller (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3d)</td>
+                        <td>Katate Ryote Dori</td>
+                        <td>Koshinage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/THAjuIbpkcI?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3k)<br>(2d, 3d)</td>
+                        <td>Katate Ryote Dori</td>
+                        <td>Kokyu Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/KfM3kIRfNkY?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3d)</td>
+                        <td>Muna Dori</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/_NJZ4dGA0I8?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3d)</td>
+                        <td>Muna Dori</td>
+                        <td>Nikyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/h479PiVsDRA?mute=1"></iframe>
+                                <figcaption>Dojo Copenhagen Aiki Shuren (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/XD-rzmUzhLg?mute=1"></iframe>
+                                <figcaption>Morihiro Saito (variations)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1k)<br>(3d)</td>
+                        <td>Muna Dori</td>
+                        <td>Shihonage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/RZnxmCDsKTk?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/3YLH5QuW4Xw?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/y1EwBB21zPA?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3k)<br>(1d, 2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Nikyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/JHULMQtky3w?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/E9R7MmsAenU?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3k)<br>(1d, 2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/zt_Z43_v4ZY?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Lz1pEzkwfWU?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3k)<br>(1d, 2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Uchi Kaiten Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/N-mdkNG6rRI?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Yonkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/KWTFWqk-0i0?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Zr-VDIOJR44?mute=1"></iframe>
+                                <figcaption>Michel Erb (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1k)<br>(1d, 2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Gokyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Hge2r42U9sI?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/TvkMWCS50i8?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Iriminage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/IYuWQen5NjQ?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Shihonage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/1ekCrUW2SDs?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o 1st form)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/mJZ7IFLm4N4?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o 2nd form)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Soto Kaiten Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/7JLwrECfGK4?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Kokyu Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/PL2EOtLgqe0?mute=1"></iframe>
+                                <figcaption>François Pichereau (1st, 2nd, 3rd form)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/i-Vq69mQ1T8?mute=1"></iframe>
+                                <figcaption>Peter Van Marcke (6 variations)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3k)<br>(1d, 2d, 3d)</td>
+                        <td>Yokomen Uchi</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/VoP8GloXlwA?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/WgLAr54c9Ko?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3k)<br>(1d, 2d, 3d)</td>
+                        <td>Yokomen Uchi</td>
+                        <td>Nikyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Sqx6kDmkq0A?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/DHk2mfjCQns?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u 1st form)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/oEYnCn6C058?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u 2nd form)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3k)<br>(1d, 2d, 3d)</td>
+                        <td>Yokomen Uchi</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/EmJbj2cCq-g?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o 1st form)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/CJpkyz4ZEhI?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o 2nd form)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/7iRhtnYV17s?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Yokomen Uchi</td>
+                        <td>Yonkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/9O0XzO95PRc?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/OzooAlk8Y5k?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Yokomen Uchi</td>
+                        <td>Gokyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/O_YeVrqbd1I?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3k)<br>(1d, 2d, 3d)</td>
+                        <td>Yokomen Uchi</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/LTGRZgRZjvc?mute=1"></iframe>
+                                <figcaption>Christian Tissier (int)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Zkgb9lem_mU?mute=1"></iframe>
+                                <figcaption>Christian Tissier (ext)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3k)<br>(1d, 2d, 3d)</td>
+                        <td>Yokomen Uchi</td>
+                        <td>Iriminage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/QRLgIxLdldk?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Yokomen Uchi</td>
+                        <td>Shihonage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/7tebWp2MzgM?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/ORoAK6tIc00?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1d, 2d, 3d)</td>
+                        <td>Yokomen Uchi</td>
+                        <td>Kokyu Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/LhWuYF16CIk?mute=1"></iframe>
+                                <figcaption>François Pichereau (1st, 2nd, 3rd, 4th form)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/vQJCBIJp7bc?mute=1"></iframe>
+                                <figcaption>Leonardo Sodre (1st, 2nd, 3rd form)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1k)<br>(2d, 3d)</td>
+                        <td>Chudan Tsuki</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/x5v9LU7iCec?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/u81MkfKdLZI?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(2d, 3d)</td>
+                        <td>Chudan Tsuki</td>
+                        <td>Uchi Kaiten Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/oj8QK_Kvs9c?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1k)<br>(1d, 2d, 3d)</td>
+                        <td>Chudan Tsuki</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/2DosmmcHATw?mute=1"></iframe>
+                                <figcaption>Christian Tissier (1st form)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/7w4yyeT8UeU?mute=1"></iframe>
+                                <figcaption>Christian Tissier (2nd form)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3k)<br>(1d, 2d, 3d)</td>
+                        <td>Chudan Tsuki</td>
+                        <td>Iriminage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/WleULqVQ2QI?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1k)<br>(1d, 2d, 3d)</td>
+                        <td>Chudan Tsuki</td>
+                        <td>Soto Kaiten Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/C2zFDezyfvw?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(3d)</td>
+                        <td>Chudan Tsuki</td>
+                        <td>Udekimenage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Ec5R8nyYWOg?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(2d, 3d)</td>
+                        <td>Chudan Tsuki</td>
+                        <td>Hiji Kime Osae</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/cgpGb0wCpSQ?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/gGksHc6Ej5Q?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(2d, 3d)</td>
+                        <td>Chudan Tsuki</td>
+                        <td>Kokyu Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/AhdjO06_93o?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/6fGHfGl3s7k?mute=1"></iframe>
+                                <figcaption>Leonardo Sodre (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(4d)</td>
+                        <td>Jodan Tsuki</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/VUh06k0aQ7o?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1k)</td>
+                        <td>Jodan Tsuki</td>
+                        <td>Yonkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/4lWtwVfYLfg?mute=1"></iframe>
+                                <figcaption>Dojo Darmstadt (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Kbqaf2YwJQQ?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1k)</td>
+                        <td>Jodan Tsuki</td>
+                        <td>Iriminage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/_735W6ZDzGA?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/JG9MGAGUguI?mute=1"></iframe>
+                                <figcaption>Leonardo Sodre (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1k)</td>
+                        <td>Jodan Tsuki</td>
+                        <td>Shihonage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/B_2KDjB8O44?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/T0a2kN9sE4M?mute=1"></iframe>
+                                <figcaption>Paul Muller (o)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1k)</td>
+                        <td>Jodan Tsuki</td>
+                        <td>Ushiro Kiri otoshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/srfjVjm5ge8?mute=1"></iframe>
+                                <figcaption>Paul Muller (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1k)</td>
+                        <td>Jodan Tsuki</td>
+                        <td>Koshinage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/IT52cQMPn5c?mute=1"></iframe>
+                                <figcaption>Paul Muller (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1k)<br>(2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Jiyu Waza</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/c4r6oHqzPEw?mute=1"></iframe>
+                                <figcaption>Bak László (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tachi Waza<br>(1k)<br>(3d)</td>
+                        <td>Yokomen Uchi</td>
+                        <td>Jiyu Waza</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/ImTGtaBbAkk?mute=1"></iframe>
+                                <figcaption>Leonardo Sodre (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ushiro Ryote Dori</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/PWEZfhmkt4I?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/n07sJtm8RPg?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(3k)<br>(1d, 2d, 3d)</td>
+                        <td>Ushiro Ryote Dori</td>
+                        <td>Nikyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/0qcSRQYx-dc?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ushiro Ryote Dori</td>
+                        <td>Hiji Kime Osae</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/ubKKuDYzBKw?mute=1"></iframe>
+                                <figcaption>Paul Muller (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ushiro Ryote Dori</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/--P1sYxcfZo?mute=1"></iframe>
+                                <figcaption>Christian Tissier (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/eJlRvR0sU5M?mute=1"></iframe>
+                                <figcaption>Christian Tissier (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(1d, 2d, 3d)</td>
+                        <td>Ushiro Ryote Dori</td>
+                        <td>Yonkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/VchT_WOLtIM?mute=1"></iframe>
+                                <figcaption>Paul Muller (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(3k)<br>(1d, 2d, 3d)</td>
+                        <td>Ushiro Ryote Dori</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/2zRk5LOzkdE?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(3k)<br>(1d, 2d, 3d)</td>
+                        <td>Ushiro Ryote Dori</td>
+                        <td>Iriminage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/WlTchEjLeFA?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(3k)<br>(1d, 2d, 3d)</td>
+                        <td>Ushiro Ryote Dori</td>
+                        <td>Shihonage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/jRTJYoXv8N4?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(1k)<br>(2d, 3d)</td>
+                        <td>Ushiro Ryote Dori</td>
+                        <td>Koshinage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Hrx8EYUgV7w?mute=1"></iframe>
+                                <figcaption>François Pichereau (1st, 2nd form)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(2d, 3d)</td>
+                        <td>Ushiro Ryote Dori</td>
+                        <td>Kokyu Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/19X3GZo2GgY?mute=1"></iframe>
+                                <figcaption>François Pichereau (1st, 2nd, 3rd form)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(3d)</td>
+                        <td>Ushiro Ryote Dori</td>
+                        <td>Juji Garami</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Fg_gJL9A6Yg?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(2d, 3d)</td>
+                        <td>Ushiro Ryo Kata Dori</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/1AxrrJbjWYA?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(2d, 3d)</td>
+                        <td>Ushiro Ryo Kata Dori</td>
+                        <td>Nikyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/ra5PXm-Y9fk?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(2d, 3d)</td>
+                        <td>Ushiro Ryo Kata Dori</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/aRVemLiiwkc?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(2d, 3d)</td>
+                        <td>Ushiro Ryo Kata Dori</td>
+                        <td>Yonkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/8nlgJNchuUE?mute=1"></iframe>
+                                <figcaption>Dojo Aïkido Ryu Talant (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(2d, 3d)</td>
+                        <td>Ushiro Ryo Kata Dori</td>
+                        <td>Kokyu Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/qEHvH_B7azQ?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/6CWkLZFw5vo?mute=1"></iframe>
+                                <figcaption>Dojo Wadokan (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(2d, 3d)</td>
+                        <td>Ushiro Ryo Kata Dori</td>
+                        <td>Aiki Otoshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/zX5o42BR0Zc?mute=1"></iframe>
+                                <figcaption>Christian Tissier (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(1k)<br>(3d)</td>
+                        <td>Ushiro Katate Dori Kubishime</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/tx7XCx60Cj0?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(3d)</td>
+                        <td>Ushiro Katate Dori Kubishime</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/B-rPybNXlV8?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(3d)</td>
+                        <td>Ushiro Katate Dori Kubishime</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/gV5mMz73WCI?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(1k)<br>(3d)</td>
+                        <td>Ushiro Katate Dori Kubishime</td>
+                        <td>Shihonage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Zc6-_WX7RRY?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(3d)</td>
+                        <td>Ushiro Katate Dori Kubishime</td>
+                        <td>Koshinage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/8iBTJK6po4s?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(3d)</td>
+                        <td>Ushiro Katate Dori Kubishime</td>
+                        <td>Kokyu Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/UUzWQGbWAn0?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(1k)<br>(3d)</td>
+                        <td>Ushiro Eri Dori</td>
+                        <td>Ikkyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/BLiJ7bLLqFk?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(3d)</td>
+                        <td>Ushiro Eri Dori</td>
+                        <td>Nikyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/UXpVDqKI8d0?mute=1"></iframe>
+                                <figcaption>François Pichereau (o+u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(1k)</td>
+                        <td>Ushiro Eri Dori</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/lrBvKPIr4Fw?mute=1"></iframe>
+                                <figcaption>Dojo Darmstadt (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ushiro Waza<br>(1k)</td>
+                        <td>Ushiro Eri Dori</td>
+                        <td>Shihonage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/G5DdZJS0Jj0?mute=1"></iframe>
+                                <figcaption>Dojo Darmstadt (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Futari Dori<br>(4d)</td>
+                        <td></td>
+                        <td>3 tecniche</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Ug6IqIZrax8?mute=1"></iframe>
+                                <figcaption>Koichi Tohei (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Randori<br>(1d, 2d, 3d)</td>
+                        <td>Mae Ryo Kata Dori</td>
+                        <td>Jiyu Waza</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/xxx?mute=1"></iframe>
+                                <figcaption>xxx (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Randori<br>(2d, 3d)</td>
+                        <td>Shomen Uchi</td>
+                        <td>Jiyu Waza</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/xxx?mute=1"></iframe>
+                                <figcaption>xxx (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Randori<br>(3d)</td>
+                        <td>Yokomen Uchi</td>
+                        <td>Jiyu Waza</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/xxx?mute=1"></iframe>
+                                <figcaption>xxx (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(2d, 3d)</td>
+                        <td>Shomen Uchi Honte</td>
+                        <td>Gokyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/jaBjyrGxzR4?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a) Gyakute! Honte not found</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(2d, 3d)</td>
+                        <td>Shomen Uchi Honte</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Lv6xr0n7wVU?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a) Gyakute! Honte not found</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(2d, 3d)</td>
+                        <td>Shomen Uchi Honte</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/_9ovwAFfK38?mute=1"></iframe>
+                                <figcaption>Paul Muller (n/a) Gyakute! Honte not found</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(3d)</td>
+                        <td>Shomen Uchi Gyakute</td>
+                        <td>Gokyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/jaBjyrGxzR4?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(3d)</td>
+                        <td>Shomen Uchi Gyakute</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/_9ovwAFfK38?mute=1"></iframe>
+                                <figcaption>Paul Muller (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(3d)</td>
+                        <td>Yokomen Uchi Honte</td>
+                        <td>Gokyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Im-_PTdxMXE?mute=1"></iframe>
+                                <figcaption>Kükoshin Walsei (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(3d)</td>
+                        <td>Yokomen Uchi Honte</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/C5EyNALXQFE?mute=1"></iframe>
+                                <figcaption>François Pichereau (1st, 2nd form) Gyakute! Honte not found</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(2d, 3d)</td>
+                        <td>Yokomen Uchi Honte</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Ud5EVrXv1hQ?mute=1"></iframe>
+                                <figcaption>Kükoshin Walsei (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(2d, 3d)</td>
+                        <td>Yokomen Uchi Honte</td>
+                        <td>Shihonage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/9HUYMhkOhB0?mute=1"></iframe>
+                                <figcaption>Kükoshin Walsei (o)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/2Q_xlOYpCSM?mute=1"></iframe>
+                                <figcaption>Kükoshin Walsei (u)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(2d, 3d)</td>
+                        <td>Yokomen Uchi Honte</td>
+                        <td>Naname Kokyu Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/xxx?mute=1"></iframe>
+                                <figcaption>xxx (xxx)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(3d)</td>
+                        <td>Yokomen Uchi Gyakute</td>
+                        <td>Gokyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/WbLNDOMnhpM?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(3d)</td>
+                        <td>Yokomen Uchi Gyakute</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/ES6aUoF5WHw?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(3d)</td>
+                        <td>Yokomen Uchi Gyakute</td>
+                        <td>Shihonage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/rMkDuYwXsGo?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(3d)</td>
+                        <td>Yokomen Uchi Gyakute</td>
+                        <td>Naname Kokyu Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/xxx?mute=1"></iframe>
+                                <figcaption>xxx (xxx)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(2d, 3d)</td>
+                        <td>Tsuki Honte</td>
+                        <td>Gokyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/YKcREeOGeBg?mute=1"></iframe>
+                                <figcaption>Paul Muller (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(2d, 3d)</td>
+                        <td>Tsuki Honte</td>
+                        <td>Sankyo</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/Xy_BIsbXAQE?mute=1"></iframe>
+                                <figcaption>François Pichereau (n/a)</figcaption>
+                            </figure>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/ANHYfGxUyds?mute=1"></iframe>
+                                <figcaption>Armen Hüsüman (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(2d, 3d)</td>
+                        <td>Tsuki Honte</td>
+                        <td>Kotegaeshi</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/cocSYV6xqCE?mute=1"></iframe>
+                                <figcaption>Kükoshin Walsei (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(2d, 3d)</td>
+                        <td>Tsuki Honte</td>
+                        <td>Hiji Kime Osae</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/sxss0yxNu0w?mute=1"></iframe>
+                                <figcaption>Kükoshin Walsei (n/a)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tanto Dori<br>(2d, 3d)</td>
+                        <td>Tsuki Honte</td>
+                        <td>Naname Kokyu Nage</td>
+                        <td>
+                            <figure>
+                                <iframe class="youtube-video" allow="web-share" allowfullscreen frameborder="0" data-src="https://www.youtube.com/embed/xxx?mute=1"></iframe>
+                                <figcaption>xxx (xxx)</figcaption>
+                            </figure>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </body>
+</html>
