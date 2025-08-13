@@ -7,7 +7,28 @@
         <style>
             body {
                 font-family: Arial, sans-serif;
-                margin: 20px;
+                margin: 0;
+                padding-top: 50px;
+            }
+
+            nav {
+                position: fixed;
+                top: 0;
+                width: 100%;
+                background-color: #333;
+                display: flex;
+            }
+
+            nav a {
+                flex: 1;
+                color: white;
+                text-align: center;
+                padding: 14px;
+                text-decoration: none;
+            }
+
+            nav a:hover {
+                background-color: #575757;
             }
 
             h1 {
@@ -89,6 +110,17 @@
         </style>
 
         <script>
+            function showSection(sectionId) {
+                const sections = document.querySelectorAll('.tabcontent');
+                sections.forEach(section => section.style.display = 'none');
+                const target = document.getElementById(sectionId);
+                if (target) {
+                    target.style.display = 'block';
+                }
+            }
+        </script>
+
+        <script>
             document.addEventListener("DOMContentLoaded", function() {
                 const lazyIframes = document.querySelectorAll("iframe.youtube-video");
 
@@ -112,6 +144,7 @@
 
                 // Ensure visible-rows-count is updated on page load
                 filterTable();
+                showSection('techniques');
             });
         </script>
 
@@ -205,7 +238,7 @@
             }
 
             function filterTable() {
-                var table = document.querySelector("table");
+                var table = document.getElementById("techniques");
                 var rows = table.getElementsByTagName("tr");
                 var headerRows = table.querySelectorAll("thead tr").length;
 
@@ -253,78 +286,29 @@
     </head>
 
     <body>
-        <!-- Title with Aikido Symbol -->
-        <h1>合気道 Aikido Techniques</h1>
-        <h2>ProgettoAiki</h2>
-        <h4>Download the pdf <a href="https://progettoaiki.org/files/ProgrammaEsamiDanAikidoProgettoAiki.pdf" target="_blank">here</a></h4>
-        <h4>Playlists</h4>
-        <h4>
-            <ul>
-                <li>Michel Erb: <a href="https://www.youtube.com/@aikidocom/playlists" target="_blank">here</a></li>
-                <li>Peter Van Marcke: <a href="https://www.youtube.com/@petervmarcke/playlists" target="_blank">here</a></li>
-                <li>Shirakawa Ryuji: <a href="https://www.youtube.com/@Shinburenseijyuku/playlists" target="_blank">here</a></li>
-                <li>Stefan Stenudd: <a href="https://www.youtube.com/@StefanStenudd" target="_blank">here</a></li>
-                <li>Bruno Gonzalez: <a href="https://www.youtube.com/@BrunoGonzalezAikido/playlists" target="_blank">here</a></li>
-                <li>Anis Aikido (Tissier): <a href="https://www.youtube.com/@anisaikido6528/playlists" target="_blank">here</a></li>
-                <li>Aikido Lleida (Tissier, ...): <a href="https://www.youtube.com/@clubaikidolleida8610/playlists" target="_blank">here</a></li>
-                <li>How to do Aikido (NY Aikikai): <a href="https://www.youtube.com/playlist?list=PL970B7BDB368DB950" target="_blank">here</a></li>
-                <li>Stefan Stenudd (Tanto): <a href="https://www.youtube.com/playlist?list=PLB0410E922787DE51" target="_blank">here</a></li>
-            </ul>
-        </h4>
-        <!-- Techniques Table -->
-    
-        <!-- Tab Content -->
-        <div class="tabcontent">
-            <h3>Techniques</h3>
+        <nav>
+            <a href="#" onclick="showSection('techniques'); return false;">Techniques</a>
+            <a href="#" onclick="showSection('filters'); return false;">Filters</a>
+            <a href="#" onclick="showSection('playlists'); return false;">Playlists</a>
+            <a href="#" onclick="showSection('help'); return false;">Help</a>
+        </nav>
 
+        <section id="techniques" class="tabcontent">
+            <h3>Techniques</h3>
+            <div>
+                <label id="visible-rows-count">#: 0</label>
+                <button onclick="showRandomTechnique()">Random technique</button>
+                <label id="randomTechniqueLabel"></label>
+                <button id="gotoButton" style="display: none;" onclick="gotoTechnique()">Goto</button>
+                <button id="searchYouTubeButton" style="display: none;" onclick="searchYouTube()">Search on YouTube</button>
+            </div>
             <table id="techniques">
                 <thead>
                     <tr>
-                        <th colspan="4">
-                            <!-- Div per raggruppare tutti i filtri e la ricerca in un’unica riga -->
-                            <div style="display: flex; flex-direction: column; gap: 20px;">
-                                <!-- Filtri per le categorie -->
-                                <div>
-                                    <label><input type="checkbox" class="filter-checkbox-category" value="Suwari Waza" onclick="filterTable()" checked> Suwari Waza</label>
-                                    <label><input type="checkbox" class="filter-checkbox-category" value="Hanmi Handachi Waza" onclick="filterTable()" checked> Hanmi Handachi Waza</label>
-                                    <label><input type="checkbox" class="filter-checkbox-category" value="Tachi Waza" onclick="filterTable()" checked> Tachi Waza</label>
-                                    <label><input type="checkbox" class="filter-checkbox-category" value="Ushiro Waza" onclick="filterTable()" checked> Ushiro Waza</label>
-                                    <label><input type="checkbox" class="filter-checkbox-category" value="Futari Dori" onclick="filterTable()" checked> Futari Dori</label>
-                                    <label><input type="checkbox" class="filter-checkbox-category" value="Randori" onclick="filterTable()" checked> Randori</label>
-                                    <label><input type="checkbox" class="filter-checkbox-category" value="Tanto Dori" onclick="filterTable()" checked> Tanto Dori</label>
-                                </div>
-
-                                <div>
-                                    <label for="filter-grade">Grade selection:</label>
-                                    <select id="filter-grade" onchange="filterTable()">
-                                        <option value="">Tutti</option>
-                                        <option value="5k">Kyu 5</option>
-                                        <option value="4k">Kyu 4</option>
-                                        <option value="3k">Kyu 3</option>
-                                        <option value="2K">Kyu 2</option>
-                                        <option value="1k">Kyu 1</option>
-                                        <option value="1d">Dan 1</option>
-                                        <option value="2d">Dan 2</option>
-                                        <option value="3d">Dan 3</option>
-                                    </select>
-                                </div>
-
-                                <!-- Filtro di testo libero -->
-                                <div>
-                                    <label for="filter-free-text">Free text filter:</label>
-                                    <input type="text" id="filter-free-text" placeholder="Free text filter" onkeyup="filterTable()"/>
-                                </div>
-
-                                <!-- Filtro per tecnica casuale -->
-                                <div>
-                                    <label id="visible-rows-count">#: 0</label>
-                                    <button onclick="showRandomTechnique()">Random technique</button>
-                                    <label id="randomTechniqueLabel"></label>
-                                    <button id="gotoButton" style="display: none;" onclick="gotoTechnique()">Goto</button>
-                                    <button id="searchYouTubeButton" style="display: none;" onclick="searchYouTube()">Search on YouTube</button>
-                                </div>
-                            </div>
-                        </th>
+                        <th>Category</th>
+                        <th>Attack</th>
+                        <th>Technique</th>
+                        <th>Videos</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -2504,6 +2488,64 @@
                     </tr>
                 </tbody>
             </table>
-        </div>
+        </section>
+
+        <section id="filters" class="tabcontent" style="display:none">
+            <h3>Filters</h3>
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div>
+                    <label><input type="checkbox" class="filter-checkbox-category" value="Suwari Waza" onclick="filterTable()" checked> Suwari Waza</label>
+                    <label><input type="checkbox" class="filter-checkbox-category" value="Hanmi Handachi Waza" onclick="filterTable()" checked> Hanmi Handachi Waza</label>
+                    <label><input type="checkbox" class="filter-checkbox-category" value="Tachi Waza" onclick="filterTable()" checked> Tachi Waza</label>
+                    <label><input type="checkbox" class="filter-checkbox-category" value="Ushiro Waza" onclick="filterTable()" checked> Ushiro Waza</label>
+                    <label><input type="checkbox" class="filter-checkbox-category" value="Futari Dori" onclick="filterTable()" checked> Futari Dori</label>
+                    <label><input type="checkbox" class="filter-checkbox-category" value="Randori" onclick="filterTable()" checked> Randori</label>
+                    <label><input type="checkbox" class="filter-checkbox-category" value="Tanto Dori" onclick="filterTable()" checked> Tanto Dori</label>
+                </div>
+
+                <div>
+                    <label for="filter-grade">Grade selection:</label>
+                    <select id="filter-grade" onchange="filterTable()">
+                        <option value="">Tutti</option>
+                        <option value="5k">Kyu 5</option>
+                        <option value="4k">Kyu 4</option>
+                        <option value="3k">Kyu 3</option>
+                        <option value="2K">Kyu 2</option>
+                        <option value="1k">Kyu 1</option>
+                        <option value="1d">Dan 1</option>
+                        <option value="2d">Dan 2</option>
+                        <option value="3d">Dan 3</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="filter-free-text">Free text filter:</label>
+                    <input type="text" id="filter-free-text" placeholder="Free text filter" onkeyup="filterTable()"/>
+                </div>
+            </div>
+        </section>
+
+        <section id="playlists" class="tabcontent" style="display:none">
+            <h3>Playlists</h3>
+            <ul>
+                <li>Michel Erb: <a href="https://www.youtube.com/@aikidocom/playlists" target="_blank">here</a></li>
+                <li>Peter Van Marcke: <a href="https://www.youtube.com/@petervmarcke/playlists" target="_blank">here</a></li>
+                <li>Shirakawa Ryuji: <a href="https://www.youtube.com/@Shinburenseijyuku/playlists" target="_blank">here</a></li>
+                <li>Stefan Stenudd: <a href="https://www.youtube.com/@StefanStenudd" target="_blank">here</a></li>
+                <li>Bruno Gonzalez: <a href="https://www.youtube.com/@BrunoGonzalezAikido/playlists" target="_blank">here</a></li>
+                <li>Anis Aikido (Tissier): <a href="https://www.youtube.com/@anisaikido6528/playlists" target="_blank">here</a></li>
+                <li>Aikido Lleida (Tissier, ...): <a href="https://www.youtube.com/@clubaikidolleida8610/playlists" target="_blank">here</a></li>
+                <li>How to do Aikido (NY Aikikai): <a href="https://www.youtube.com/playlist?list=PL970B7BDB368DB950" target="_blank">here</a></li>
+                <li>Stefan Stenudd (Tanto): <a href="https://www.youtube.com/playlist?list=PLB0410E922787DE51" target="_blank">here</a></li>
+            </ul>
+        </section>
+
+        <section id="help" class="tabcontent" style="display:none">
+            <h3>Help</h3>
+            <h1>合気道 Aikido Techniques</h1>
+            <h2>ProgettoAiki</h2>
+            <h4>Download the pdf <a href="https://progettoaiki.org/files/ProgrammaEsamiDanAikidoProgettoAiki.pdf" target="_blank">here</a></h4>
+        </section>
+
     </body>
 </html>
